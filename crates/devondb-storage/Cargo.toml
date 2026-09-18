@@ -1,0 +1,64 @@
+[package]
+name = "devondb-storage"
+description = "Storage engine for devondb: pager, superblock, WAL, node groups"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+# The DEVONPACK read-only distribution container (docs/SCALE.md §7): OFF in
+# the library core; devondb forwards it and devondb-cli turns it ON by
+# default. `zstd` is the only dependency it adds (§7.3 codec ruling).
+pack = ["dep:zstd"]
+
+[dependencies]
+devondb-types.workspace = true
+devondb-geo.workspace = true
+thiserror.workspace = true
+crc32c.workspace = true
+getrandom.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+zstd = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+proptest.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "pager_backend"
+harness = false
+
+[[bench]]
+name = "encoding_constant"
+harness = false
+
+[[bench]]
+name = "encoding_rle"
+harness = false
+
+[[bench]]
+name = "encoding_bitpack_for"
+harness = false
+
+[[bench]]
+name = "encoding_dictionary"
+harness = false
+
+[[bench]]
+name = "encoding_fsst"
+harness = false
+
+[[bench]]
+name = "encoding_alp"
+harness = false
+
+[[bench]]
+name = "encoding_selection"
+harness = false

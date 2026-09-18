@@ -1,0 +1,21 @@
+[package]
+name = "devondb-plan"
+description = "DevonPlan IR: the typed, versioned logical plan language of devondb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+devondb-types.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

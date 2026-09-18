@@ -1,0 +1,55 @@
+[package]
+name = "devondb"
+description = "devondb: embedded graph database with a stable format, MVCC, first-class vectors, and a natural-language query surface"
+readme = "../../README.md"
+keywords = ["graph", "database", "embedded", "vector", "mvcc"]
+categories = ["database-implementations", "database", "embedded"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+# Deterministic BM25 retrieval is optional in the embedded library.
+fts = ["devondb-exec/fts"]
+# `copy <table> from "<file>.parquet"` (docs/SCALE.md §5): OFF by default in
+# the library; devondb-cli forwards it and turns it ON by default.
+parquet = ["dep:parquet", "dep:serde_json"]
+# The DEVONPACK read-only distribution container (docs/SCALE.md §7): OFF in
+# the library; devondb-cli forwards it and turns it ON by default.
+pack = ["devondb-storage/pack"]
+
+[dependencies]
+devondb-types.workspace = true
+devondb-storage.workspace = true
+devondb-plan.workspace = true
+devondb-exec.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+# Record-API reader only (default-features = false): no arrow-* crates enter
+# the build. serde_json applies the Json canonical-form law to JSON columns.
+parquet = { version = "59.2", optional = true, default-features = false, features = ["snap", "zstd"] }
+serde_json = { workspace = true, optional = true }
+
+[dev-dependencies]
+crc32c.workspace = true
+criterion = "0.5"
+devondb-geo.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "scan"
+harness = false
+
+[[bench]]
+name = "upsert_batch"
+harness = false
+
+[[bench]]
+name = "s3_baseline"
+harness = false

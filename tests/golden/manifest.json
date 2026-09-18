@@ -1,0 +1,178 @@
+[
+  {
+    "file": "m1-person.devondb",
+    "page_size": 4096,
+    "description": "M1 Person table with nulls, an empty string, UTF-8 text, and Vector(4) values.",
+    "tables": [
+      {
+        "name": "Person",
+        "row_count": 5
+      }
+    ]
+  },
+  {
+    "file": "m2-social.devondb",
+    "page_size": 4096,
+    "description": "M2 deterministic Person and Knows social graph with a directed cycle and an isolated node.",
+    "tables": [
+      {
+        "name": "Person",
+        "row_count": 6
+      }
+    ]
+  },
+  {
+    "file": "m5-pins.devondb",
+    "page_size": 4096,
+    "description": "M5 deterministic Person and Knows graph with the durable ada friends pinned plan.",
+    "tables": [
+      {
+        "name": "Person",
+        "row_count": 3
+      }
+    ]
+  },
+  {
+    "file": "ont-classes.devondb",
+    "page_size": 4096,
+    "description": "Ontology interface and node and relationship classes over a deterministic Person and Knows graph.",
+    "tables": [
+      {
+        "name": "Person",
+        "row_count": 3
+      }
+    ]
+  },
+  {
+    "file": "geo-places.devondb",
+    "page_size": 4096,
+    "description": "GeoPoint Place rows spanning a pole ordinary coordinates and an antimeridian-adjacent point.",
+    "tables": [
+      {
+        "name": "Place",
+        "row_count": 4
+      }
+    ]
+  },
+  {
+    "file": "scalar-v2.devondb",
+    "page_size": 4096,
+    "description": "Scalar-v2 Timestamp Bytes Decimal(38,0) and nested Json node columns with null and edge values.",
+    "tables": [
+      {
+        "name": "Scalar",
+        "row_count": 3
+      }
+    ]
+  },
+  {
+    "file": "s1-stats.devondb",
+    "page_size": 4096,
+    "description": "S-1 zone-map anchor covering Int64 bounds Float64 NaN omission all-NULL omission and GeoPoint atom-key bounds.",
+    "tables": [
+      {
+        "name": "Stats",
+        "row_count": 3
+      }
+    ]
+  },
+  {
+    "file": "free-pages.devondb",
+    "page_size": 4096,
+    "description": "FREE_PAGES anchor with retired reclaimed and reused pages and a live ledger spanning two pages under feature bit 5.",
+    "tables": [
+      {
+        "name": "Keyed",
+        "row_count": 296
+      }
+    ]
+  },
+  {
+    "file": "multiprocess.devondb",
+    "page_size": 4096,
+    "description": "Offline-activated multiprocess coordination anchor with deterministic writer and reader rows.",
+    "tables": [
+      {
+        "name": "Worker",
+        "row_count": 2
+      }
+    ]
+  },
+  {
+    "file": "release-0.1.0.devondb",
+    "page_size": 4096,
+    "description": "v0.1.0 release anchor minted by the release binary covering GeoPoint Vector rel edges and zone maps under the frozen v1 format.",
+    "tables": [
+      {
+        "name": "Landmark",
+        "row_count": 3
+      }
+    ]
+  },
+  {
+    "file": "encoding-constant.devondb",
+    "page_size": 4096,
+    "description": "S3-c constant encoding anchor: Constant table with a plain Int64 primary key and Int64/String constant-encoded columns (id 1, directory-flags bit 1) under feature bit 13.",
+    "tables": [
+      {
+        "name": "Constant",
+        "row_count": 4
+      }
+    ]
+  },
+  {
+    "file": "encoding-rle.devondb",
+    "page_size": 4096,
+    "description": "S3-c rle encoding anchor: Rle table with a plain Int64 primary key and Timestamp/Bool rle-encoded columns (id 2, directory-flags bit 1) under feature bit 13.",
+    "tables": [
+      {
+        "name": "Rle",
+        "row_count": 6
+      }
+    ]
+  },
+  {
+    "file": "encoding-bitpack_for.devondb",
+    "page_size": 4096,
+    "description": "S3-c bitpack_for encoding anchor: Bitpack table with a plain Int64 primary key and Int64/Timestamp FastLanes bitpack+FOR columns (id 3, directory-flags bit 1) under feature bit 13.",
+    "tables": [
+      {
+        "name": "Bitpack",
+        "row_count": 5
+      }
+    ]
+  },
+  {
+    "file": "encoding-dictionary.devondb",
+    "page_size": 4096,
+    "description": "S3-c dictionary encoding anchor: Dictionary table with a plain Int64 primary key and a String dictionary-encoded column (id 4, directory-flags bit 1) under feature bit 13.",
+    "tables": [
+      {
+        "name": "Dictionary",
+        "row_count": 6
+      }
+    ]
+  },
+  {
+    "file": "encoding-fsst.devondb",
+    "page_size": 4096,
+    "description": "S3-c FSST encoding anchor: Fsst table with a plain Int64 primary key and two fsst-encoded String columns (id 5, directory-flags bit 1) under feature bit 13.",
+    "tables": [
+      {
+        "name": "Fsst",
+        "row_count": 4
+      }
+    ]
+  },
+  {
+    "file": "encoding-alp.devondb",
+    "page_size": 4096,
+    "description": "S3-c alp encoding anchor: Alp table with a plain Int64 primary key and two Float64 alp-encoded columns (id 6, directory-flags bit 1) under feature bit 13, one with an exception entry.",
+    "tables": [
+      {
+        "name": "Alp",
+        "row_count": 4
+      }
+    ]
+  }
+]

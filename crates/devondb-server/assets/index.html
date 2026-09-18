@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>devondb</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div>
+          <strong class="wordmark">devondb</strong>
+          <span class="product-label">graph explorer</span>
+        </div>
+        <span class="local-badge">local database</span>
+      </header>
+
+      <div class="workspace">
+        <main class="main-workspace">
+          <section class="panel editor-panel" aria-labelledby="editor-heading">
+            <header class="panel-header editor-header">
+              <div>
+                <h1 id="editor-heading">Ask or query</h1>
+                <p>Natural language or DevonPlan · <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> to explain and run</p>
+              </div>
+              <div class="editor-actions">
+                <button id="explain-button" class="button secondary" type="button">Explain</button>
+                <button id="run-button" class="button primary" type="button">Run</button>
+              </div>
+            </header>
+            <label class="sr-only" for="query-editor">Natural language or DevonPlan text</label>
+            <div class="editor-combobox">
+              <textarea
+                id="query-editor"
+                rows="5"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="query-autocomplete"
+                aria-expanded="false"
+                aria-haspopup="listbox"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="Who does Ada know? — or write DevonPlan"
+              ></textarea>
+              <ul
+                id="query-autocomplete"
+                class="autocomplete-list"
+                role="listbox"
+                aria-label="DevonPlan suggestions"
+                hidden
+              ></ul>
+            </div>
+            <div id="editor-error" class="inline-error" role="alert" aria-live="assertive" hidden></div>
+          </section>
+
+          <section class="panel plan-panel" aria-labelledby="plan-heading">
+            <header class="panel-header">
+              <div>
+                <h2 id="plan-heading">Plan</h2>
+                <p>engine-confirmed · this is what I will run</p>
+              </div>
+              <span id="plan-source-badge" class="compiled-source-badge" hidden>compiled from natural language</span>
+            </header>
+            <div id="plan-view" class="panel-body" aria-live="polite"></div>
+          </section>
+
+          <section class="panel results-panel" aria-labelledby="results-heading">
+            <header class="panel-header results-header">
+              <div>
+                <h2 id="results-heading">Results</h2>
+              </div>
+              <div class="tabs" role="tablist" aria-label="Result views">
+                <button id="table-tab" class="tab" type="button" role="tab" data-view="Table">Table</button>
+                <button id="grid-tab" class="tab" type="button" role="tab" data-view="Grid">Grid</button>
+                <button id="graph-tab" class="tab" type="button" role="tab" data-view="Graph">Graph</button>
+              </div>
+            </header>
+            <div id="result-error" class="result-errors" aria-live="polite"></div>
+            <div id="results-view" class="panel-body results-body" role="tabpanel"></div>
+          </section>
+        </main>
+
+        <aside class="panel sidebar" aria-label="Database sidebar">
+          <div id="schema-view"></div>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>

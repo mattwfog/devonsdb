@@ -1,0 +1,13 @@
+[package]
+name = "devondb-fuzz"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+
+# This is deliberately a standalone local tool, not a workspace member.
+[workspace]
+
+[dependencies]
+devondb = { path = "../../crates/devondb", features = ["pack"] }
+devondb-nl = { path = "../../crates/devondb-nl" }

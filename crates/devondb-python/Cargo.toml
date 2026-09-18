@@ -1,0 +1,22 @@
+[package]
+name = "devondb-python"
+description = "devondb Python bindings (pyo3): the embedded graph database as a Python module"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# Not yet published: the crates.io surface is the embedded library set.
+publish = false
+
+[lib]
+name = "devondb_python"
+crate-type = ["cdylib"]
+
+[dependencies]
+devondb.workspace = true
+pyo3 = { version = "0.29.1", features = ["abi3-py310", "extension-module"] }
+serde_json.workspace = true
+
+[lints]
+workspace = true

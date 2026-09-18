@@ -1,0 +1,22 @@
+[package]
+name = "devondb-c"
+description = "devondb C FFI: a hand-written C header over the embedded API"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# Not yet published: the crates.io surface is the embedded library set.
+publish = false
+
+[lib]
+name = "devondb_c"
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+devondb.workspace = true
+devondb-types.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

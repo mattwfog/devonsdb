@@ -1,0 +1,19 @@
+[package]
+name = "devondb-geo"
+description = "DevonGrid geospatial cell system for devondb (docs/GEO.md)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[dev-dependencies]
+# Verification oracle ONLY (docs/GEO.md §4): h3o never appears outside
+# tests. The runtime geo surface is this repo's own code.
+h3o = "0.8"
+
+[lints]
+workspace = true

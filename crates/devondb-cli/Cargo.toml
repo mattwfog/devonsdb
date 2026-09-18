@@ -1,0 +1,38 @@
+[package]
+name = "devondb-cli"
+description = "devondb command-line shell"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+# Not yet published: the crates.io surface is the embedded library set.
+publish = false
+
+[[bin]]
+name = "devondb"
+path = "src/main.rs"
+
+[features]
+# The feature-complete single binary ships the UI by default; the library
+# core never depends on it (docs/ARCHITECTURE.md § Edge budget).
+default = ["ui", "mcp", "parquet", "pack", "fts"]
+fts = ["devondb/fts", "devondb-server?/fts"]
+ui = ["dep:devondb-server"]
+# `devondb mcp`: the read-only tool server for Claude Desktop (docs/MCP.md).
+mcp = ["dep:devondb-server"]
+# Parquet COPY bulk load (docs/SCALE.md §5); the library keeps it OFF.
+parquet = ["devondb/parquet"]
+# `devondb pack` + open-by-magic (docs/SCALE.md §7); the library keeps it OFF.
+pack = ["devondb/pack"]
+
+[dependencies]
+devondb.workspace = true
+devondb-nl.workspace = true
+devondb-server = { workspace = true, optional = true }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

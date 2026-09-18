@@ -1,0 +1,17 @@
+[package]
+name = "devondb-nl"
+description = "devondb deterministic natural-language intent compiler (docs/NL.md)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+devondb.workspace = true
+
+[dev-dependencies]
+devondb = { workspace = true, features = ["fts"] }
+
+[lints]
+workspace = true

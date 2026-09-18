@@ -1,0 +1,15 @@
+/target
+.DS_Store
+*.devondb
+*.devondb-wal
+# Lock sidecars are persistent, regenerable coordination artifacts
+# (docs/MULTIPROCESS.md § Option A) — never database bytes, never tracked.
+*.lock-writer
+*.lock-publish
+
+# Golden corpus files are permanent tracked artifacts (FORMAT.md § Golden corpus policy)
+!tests/golden/*.devondb
+demo/
+
+# Fuzz smoke scoreboard written by tools/fuzz/run.sh acceptance runs (regenerable)
+tools/fuzz/last-smoke.log

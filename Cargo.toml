@@ -1,0 +1,64 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/devondb-types",
+    "crates/devondb-storage",
+    "crates/devondb-plan",
+    "crates/devondb-exec",
+    "crates/devondb",
+    "crates/devondb-server",
+    "crates/devondb-cli",
+    "crates/devondb-python",
+    "crates/devondb-c",
+    "crates/devondb-nl",
+    "crates/devondb-geo",
+]
+
+[workspace.package]
+version = "0.1.1"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/mattwfog/devonsdb"
+rust-version = "1.95"
+
+[workspace.dependencies]
+devondb-types = { version = "=0.1.1", path = "crates/devondb-types" }
+devondb-storage = { version = "=0.1.1", path = "crates/devondb-storage" }
+devondb-plan = { version = "=0.1.1", path = "crates/devondb-plan" }
+devondb-exec = { version = "=0.1.1", path = "crates/devondb-exec" }
+devondb = { version = "=0.1.1", path = "crates/devondb" }
+devondb-server = { version = "=0.1.1", path = "crates/devondb-server" }
+devondb-nl = { version = "=0.1.1", path = "crates/devondb-nl" }
+devondb-geo = { version = "=0.1.1", path = "crates/devondb-geo" }
+
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+crc32c = "0.6"
+getrandom = "0.3"
+proptest = "1"
+tempfile = "3"
+# DEVONPACK container codec (docs/SCALE.md §7.3); libzstd already rides in via parquet's zstd feature.
+zstd = { version = "0.13.3", default-features = false }
+
+[workspace.lints.rust]
+unsafe_code = "warn"
+
+# Dev/test builds carry line tables only. Full DWARF across the per-feature
+# artifact sets (parquet, pack, no-default) can push target/ past 10 GiB;
+# line tables preserve file-and-line backtraces with a smaller footprint.
+[profile.dev]
+debug = "line-tables-only"
+
+# Edge budget (docs/ARCHITECTURE.md § Edge budget): `release` stays
+# speed-first; `dist` is the size-gated shipping profile for edge targets.
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[profile.dist]
+inherits = "release"
+opt-level = "z"
+lto = true
+panic = "abort"

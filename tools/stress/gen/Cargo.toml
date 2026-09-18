@@ -1,0 +1,12 @@
+[package]
+name = "stress-gen"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+
+# This generator is a local tool, not a devondb workspace member.
+[workspace]
+
+[dependencies]
+parquet = { version = "=59.2.0", default-features = false }

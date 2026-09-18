@@ -1,0 +1,186 @@
+name: Release readiness
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - Cargo.lock
+      - Cargo.toml
+      - CHANGELOG.md
+      - crates/*/Cargo.toml
+      - crates/devondb/tests/format_freeze.rs
+      - docs/RELEASING.md
+      - docs/MCP.md
+      - crates/devondb-geo/THIRD_PARTY_LICENSES.md
+      - tools/mcpb/**
+      - tests/golden/*
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Require tag and package versions to agree
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          workspace_version=$(awk -F ' = ' '/^version = / { gsub(/"/, "", $2); print $2; exit }' Cargo.toml)
+          expected_tag="v${workspace_version}"
+          if [[ "$GITHUB_REF_NAME" != "$expected_tag" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match workspace version $workspace_version"
+            exit 1
+          fi
+          reported_version=$(cargo run --locked --quiet -p devondb-cli -- --version)
+          if [[ "$reported_version" != "devondb $workspace_version" ]]; then
+            echo "::error::CLI reported '$reported_version'; expected 'devondb $workspace_version'"
+            exit 1
+          fi
+          release_anchor="release-${workspace_version}.devondb"
+          if [[ ! -f "tests/golden/$release_anchor" ]]; then
+            echo "::error::missing release golden anchor tests/golden/$release_anchor"
+            exit 1
+          fi
+          if ! grep -Fq "\"file\": \"$release_anchor\"" tests/golden/manifest.json; then
+            echo "::error::$release_anchor is missing from tests/golden/manifest.json"
+            exit 1
+          fi
+          if ! grep -Fq "\"$release_anchor\"" crates/devondb/tests/format_freeze.rs; then
+            echo "::error::$release_anchor is missing from the format-freeze anchor list"
+            exit 1
+          fi
+          if ! grep -Eq "^## \[$workspace_version\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no dated $workspace_version release section"
+            exit 1
+          fi
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+      - name: Run workspace tests
+        run: cargo test --locked --workspace --no-fail-fast
+
+      - name: Package every crate
+        run: cargo package --locked --workspace --no-verify
+
+      - name: Preserve crate packages
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: crate-packages
+          path: target/package/*.crate
+          if-no-files-found: error
+
+  build-native:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+          - os: macos-15
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Verify native runner target
+        env:
+          EXPECTED_TARGET: ${{ matrix.target }}
+        run: |
+          test "$(rustc -vV | sed -n 's/^host: //p')" = "$EXPECTED_TARGET"
+
+      - name: Build and smoke-test native MCP bundle
+        run: sh tools/mcpb/smoke.sh
+
+      - name: Build release archive
+        shell: bash
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          archive_root="devondb-${version}-${host}"
+          release_dir="$RUNNER_TEMP/release"
+          mkdir -p "$release_dir/$archive_root"
+          cp "target/$host/dist/devondb" "$release_dir/$archive_root/"
+          cp README.md CHANGELOG.md LICENSE "$release_dir/$archive_root/"
+          cp crates/devondb-geo/THIRD_PARTY_LICENSES.md "$release_dir/$archive_root/"
+          binary_bytes=$(wc -c < "target/$host/dist/devondb" | tr -d ' ')
+          echo "full-UI dist binary: $binary_bytes bytes; limit: 10485760 bytes"
+          if (( binary_bytes > 10485760 )); then
+            echo "::error::release binary exceeds the 10 MiB edge budget"
+            exit 1
+          fi
+          tar -C "$release_dir" -czf "$release_dir/$archive_root.tar.gz" "$archive_root"
+          cp "tools/mcpb/build/devondb-${version}-${host}.mcpb" "$release_dir/"
+
+      - name: Preserve native archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.target }}
+          path: |
+            ${{ runner.temp }}/release/*.tar.gz
+            ${{ runner.temp }}/release/*.mcpb
+          if-no-files-found: error
+
+  publish-github-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - validate
+      - build-native
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: dist
+          merge-multiple: true
+
+      - name: Write checksums
+        working-directory: dist
+        run: sha256sum devondb-*.tar.gz devondb-*.mcpb > SHA256SUMS
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          release_flags=()
+          if [[ "$GITHUB_REF_NAME" == v0.* ]]; then
+            release_flags+=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --generate-notes \
+            --title "devondb $GITHUB_REF_NAME" \
+            "${release_flags[@]}" \
+            dist/devondb-*.tar.gz dist/devondb-*.mcpb dist/SHA256SUMS

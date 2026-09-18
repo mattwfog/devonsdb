@@ -1,0 +1,21 @@
+[package]
+name = "devondb-server"
+description = "devondb surfaces: built-in UI (embedded SPA + local JSON API) and the MCP tool server, from the single binary"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+fts = ["devondb/fts"]
+
+[dependencies]
+devondb.workspace = true
+devondb-nl.workspace = true
+devondb-types.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

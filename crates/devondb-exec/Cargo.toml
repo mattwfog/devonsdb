@@ -1,0 +1,32 @@
+[package]
+name = "devondb-exec"
+description = "Vectorized executor for DevonPlan logical plans"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+fts = []
+
+[dependencies]
+devondb-types.workspace = true
+devondb-plan.workspace = true
+devondb-storage.workspace = true
+devondb-geo.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "distance"
+harness = false
+
+[[bench]]
+name = "knn_scan"
+harness = false
+
+[lints]
+workspace = true

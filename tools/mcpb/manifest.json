@@ -1,0 +1,49 @@
+{
+  "manifest_version": "0.3",
+  "name": "devondb",
+  "display_name": "devondb (__TARGET__)",
+  "version": "__VERSION__",
+  "description": "Read-only MCP tool server for devondb: answers plain-language questions against a graph database, optimized for tokens per correct answer.",
+  "author": {
+    "name": "devondb"
+  },
+  "server": {
+    "type": "binary",
+    "entry_point": "server/__TARGET__/devondb",
+    "mcp_config": {
+      "command": "${__dirname}/server/__TARGET__/devondb",
+      "args": ["mcp", "${user_config.database}"],
+      "env": {}
+    }
+  },
+  "tools": [
+    {
+      "name": "schema",
+      "description": "Schema tree: node tables (columns, types, row counts), relationship tables, interfaces, classes, pinned plans. Call first."
+    },
+    {
+      "name": "ask",
+      "description": "Ask the database a plain-language question. Returns the deterministic plan it compiled and the rows; if the question cannot be grounded, names the unrecognized words and nearest phrasings."
+    },
+    {
+      "name": "query",
+      "description": "Run plan text (the canonical language shown by ask/explain) or a pinned plan by name. Read-only."
+    },
+    {
+      "name": "explain",
+      "description": "Canonical plan text for plan-language input, without running it. Parse errors carry positions."
+    }
+  ],
+  "user_config": {
+    "database": {
+      "type": "file",
+      "title": "Company database (.devondb)",
+      "description": "The devondb graph database file this server answers questions about. Opened read-only.",
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": ["__PLATFORM__"]
+  }
+}

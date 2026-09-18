@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TARGET_DIR: ${{ github.workspace }}/target
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+      - name: Run workspace tests
+        run: cargo test --locked --workspace --no-fail-fast
+
+      - name: Format freeze + golden corpus (the stable-format promise)
+        run: |
+          # The corpus is already covered by the workspace run; this step
+          # exists so the format promise is a NAMED, visible gate that cannot
+          # be lost silently. Judged by exit code — a package with several
+          # test binaries prints "test result: ok" for each passing one, so
+          # grepping for it would green-light a red run.
+          cargo test --locked -p devondb --test format_freeze --test golden 2>&1 \
+            | tee freeze.log
+          # Guard against the opposite failure: a run that selected nothing.
+          grep -q 'format_version_is_frozen_at_one ... ok' freeze.log
+          grep -q 'a_frozen_reader_opens_every_pre_freeze_file_unchanged ... ok' freeze.log
+          grep -q 'a_frozen_reader_opens_every_post_freeze_release_anchor_unchanged ... ok' freeze.log
+          # A corpus anchor must never gain a WAL sidecar in the repo.
+          test -z "$(ls tests/golden/*.devondb-wal 2>/dev/null)"
+
+      - name: Run rlimit golden-workload memory test (M3 close)
+        run: |
+          cargo test --locked -p devondb --test memory_budget \
+            golden_workload_stays_inside_memory_budget_and_rlimit \
+            2>&1 | tee m3-close.log
+          grep -q 'test result: ok. 1 passed' m3-close.log
+
+  size-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Enforce stripped core CLI budget
+        run: |
+          core_target="$RUNNER_TEMP/devondb-core-target"
+          cargo build --locked --profile dist -p devondb-cli --no-default-features \
+            --target-dir "$core_target"
+          core_binary="$core_target/dist/devondb"
+          core_bytes=$(stat -c%s "$core_binary")
+          echo "core dist binary: $core_bytes bytes; limit: 5242880 bytes"
+          if (( core_bytes > 5242880 )); then
+            echo "::error::core dist binary exceeds the 5 MiB edge budget"
+            exit 1
+          fi
+
+      - name: Enforce stripped full-UI binary budget
+        run: |
+          ui_target="$RUNNER_TEMP/devondb-ui-target"
+          cargo build --locked --profile dist -p devondb-cli --target-dir "$ui_target"
+          ui_binary="$ui_target/dist/devondb"
+          ui_bytes=$(stat -c%s "$ui_binary")
+          echo "full-UI dist binary: $ui_bytes bytes; limit: 10485760 bytes"
+          if (( ui_bytes > 10485760 )); then
+            echo "::error::full-UI dist binary exceeds the 10 MiB edge budget"
+            exit 1
+          fi
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install declared MSRV
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: 1.95.0
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check every target on Rust 1.95
+        run: cargo check --locked --workspace --all-targets
+
+  linux-targets:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - x86_64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable with target
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      # zstd-sys, via the default parquet feature, compiles C for
+      # the target; the bare runner has no cross C toolchain for any of the
+      # matrix targets.
+      - name: Install cross C toolchain
+        uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          target: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check feature-complete CLI for target
+        run: cargo check --locked -p devondb-cli --target ${{ matrix.target }}
+
+  macos-smoke:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+      - name: Run workspace tests
+        run: cargo test --locked --workspace --no-fail-fast
